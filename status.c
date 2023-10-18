@@ -14,5 +14,6 @@ Status_New()
     s->over = 0;
     s->quit = 0;
     s->full_screen = 0;
+    s->time = 0;
     return s;
 }

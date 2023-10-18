@@ -5,6 +5,7 @@
 
 typedef struct Status
 {
+    int time;
     int over;
     int paused;
     int quit;

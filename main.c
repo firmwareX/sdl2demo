@@ -3,11 +3,12 @@
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <time.h>
 #include "status.h"
 #include "sprite.h"
 
-#define BULLETSTOTAL 10
-#define ENEMYSTOTAL 5
+#define BULLETSTOTAL 100
+#define ENEMYSTOTAL 10
 #define WIDTH 150
 #define HEIGHT 150
 
@@ -22,8 +23,6 @@ Sprite *player;
 
 Sprite *bullets[BULLETSTOTAL];
 Sprite *enemys[ENEMYSTOTAL];
-
-int time = 0;
 
 void init_player()
 {
@@ -56,10 +55,12 @@ void make_enemy()
     {
         if (enemys[i]->life < 1)
         {
-            enemys[i]->x = rand() % WIDTH - enemys[i]->w;
+            srand(time(NULL));
+            int x = rand() % (WIDTH - enemys[i]->w);
+            enemys[i]->x = x;
             enemys[i]->y = -1 * enemys[i]->h;
             enemys[i]->life = 1;
-            enemys[i]->speed = rand() % 3;
+            enemys[i]->speed = 1;
             enemys[i]->toy = 1;
             break;
         }
@@ -89,9 +90,14 @@ void update()
         return;
     }
 
-    time += 1;
+    if (status->paused)
+    {
+        return;
+    }
 
-    if (time % 30 == 0)
+    status->time += 1;
+
+    if (status->time % 30 == 0)
     {
         make_enemy();
     }
@@ -104,9 +110,10 @@ void update()
         if (enemys[i]->life > 0)
         {
             enemys[i]->y += enemys[i]->toy * enemys[i]->speed;
+
             if (enemys[i]->y > HEIGHT)
             {
-                enemys[i]->life = 0;
+                enemys[i]->life -= 1;
             }
         }
     }
@@ -118,7 +125,7 @@ void update()
             bullets[i]->y += bullets[i]->toy * bullets[i]->speed;
             if (bullets[i]->y <= bullets[i]->h * -1)
             {
-                bullets[i]->life = 0;
+                bullets[i]->life -= 1;
             }
         }
     }
@@ -228,6 +235,20 @@ void draw()
         SDL_RenderCopy(renderer, texture, NULL, &dstrect);
     }
 
+    if (status->paused)
+    {
+        surface = TTF_RenderText_Solid(font,
+                                       "PAUSED", color);
+        texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+        int texW = 0;
+        int texH = 0;
+        SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
+        SDL_Rect dstrect = {WIDTH / 2 - texW / 2, HEIGHT / 2 - texH / 2, texW, texH};
+        // SDL_RenderCopy(renderer, texture, NULL, NULL);
+        SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+    }
+
     SDL_RenderPresent(renderer);
 }
 
@@ -290,6 +311,7 @@ void ProcessEvents()
                     init_enemys();
                     init_bullets();
                     status->over = 0;
+                    status->time = 0;
                 }
             }
 
