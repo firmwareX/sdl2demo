@@ -8,8 +8,8 @@
 
 #define BULLETSTOTAL 10
 #define ENEMYSTOTAL 5
-#define WIDTH 300
-#define HEIGHT 300
+#define WIDTH 150
+#define HEIGHT 150
 
 SDL_Window *window;
 TTF_Font *font;
@@ -24,6 +24,12 @@ Sprite *bullets[BULLETSTOTAL];
 Sprite *enemys[ENEMYSTOTAL];
 
 int time = 0;
+
+void init_player()
+{
+    player = Sprite_New(WIDTH / 2 - 20 / 2, HEIGHT - 20 - 10, 20, 20);
+    player->speed = 2;
+}
 
 void init_enemys()
 {
@@ -244,6 +250,11 @@ void ProcessEvents()
                 status->quit = 1;
             }
 
+            if (status->over)
+            {
+                return;
+            }
+
             if (e.key.keysym.sym == SDLK_a)
             {
                 player->tox = -1;
@@ -271,6 +282,27 @@ void ProcessEvents()
 
         if (e.type == SDL_KEYUP)
         {
+            if (e.key.keysym.sym == SDLK_r)
+            {
+                if (status->over)
+                {
+                    init_player();
+                    init_enemys();
+                    init_bullets();
+                    status->over = 0;
+                }
+            }
+
+            if (status->over)
+            {
+                return;
+            }
+
+            if (e.key.keysym.sym == SDLK_p)
+            {
+                status->paused = !status->paused;
+            }
+
             if (e.key.keysym.sym == SDLK_a)
             {
                 player->tox = 0;
@@ -303,9 +335,7 @@ int main(int argc, char *argv[])
 {
     status = Status_New();
 
-    player = Sprite_New(WIDTH / 2 - 20 / 2, HEIGHT - 20 - 10, 20, 20);
-    player->speed = 2;
-
+    init_player();
     init_enemys();
     init_bullets();
 
