@@ -26,7 +26,7 @@ Sprite *enemys[ENEMYSTOTAL];
 
 void init_player()
 {
-    player = Sprite_New(WIDTH / 2 - 20 / 2, HEIGHT - 20 - 10, 20, 20);
+    player = Sprite_New(WIDTH / 2 - 20 / 2, HEIGHT - 20 - 10, 20, 20, "X");
     player->speed = 2;
 }
 
@@ -173,7 +173,7 @@ void draw()
     SDL_Color color = {255, 255, 255};
     // 🛸
     surface = TTF_RenderText_Solid(font,
-                                   "M", color);
+                                   player->data, color);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
 
     // int texW = 0;

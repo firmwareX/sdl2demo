@@ -5,7 +5,7 @@
 #include <string.h>
 
 Sprite *
-Sprite_New(int x, int y, int w, int h)
+Sprite_New(int x, int y, int w, int h, char *data)
 {
     Sprite *s = malloc(sizeof(Sprite));
     // Clear to zero
@@ -22,5 +22,6 @@ Sprite_New(int x, int y, int w, int h)
     s->tox = 0;
     s->toy = 0;
     s->speed = 1;
+    s->data = data;
     return s;
 }
