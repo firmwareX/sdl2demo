@@ -21,6 +21,6 @@ Sprite_New(int x, int y, int w, int h)
     s->value = 1;
     s->tox = 0;
     s->toy = 0;
-    s->speed = 2;
+    s->speed = 1;
     return s;
 }

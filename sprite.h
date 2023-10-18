@@ -17,6 +17,7 @@ typedef struct Sprite
     int tox;
     int toy;
     int speed;
+    char data;
 } Sprite;
 
 Sprite *Sprite_New();

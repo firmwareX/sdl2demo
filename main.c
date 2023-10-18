@@ -6,6 +6,11 @@
 #include "status.h"
 #include "sprite.h"
 
+#define BULLETSTOTAL 10
+#define ENEMYSTOTAL 5
+#define WIDTH 300
+#define HEIGHT 300
+
 SDL_Window *window;
 TTF_Font *font;
 SDL_Renderer *renderer;
@@ -15,15 +20,137 @@ SDL_Texture *texture;
 Status *status;
 Sprite *player;
 
+Sprite *bullets[BULLETSTOTAL];
+Sprite *enemys[ENEMYSTOTAL];
+
 int time = 0;
+
+void init_enemys()
+{
+    // for (size_t i = 0; i < sizeof(enemys) / sizeof(enemys[0]); i++)
+    for (size_t i = 0; i < ENEMYSTOTAL; i++)
+    {
+        enemys[i] = Sprite_New(0, -20, 20, 20);
+        enemys[i]->life = 0;
+    }
+}
+
+void init_bullets()
+{
+    for (size_t i = 0; i < BULLETSTOTAL; i++)
+    {
+        bullets[i] = Sprite_New(10, 10, 10, 5);
+        bullets[i]->life = 0;
+    }
+}
+
+void make_enemy()
+{
+    for (size_t i = 0; i < ENEMYSTOTAL; i++)
+    {
+        if (enemys[i]->life < 1)
+        {
+            enemys[i]->x = rand() % WIDTH - enemys[i]->w;
+            enemys[i]->y = -1 * enemys[i]->h;
+            enemys[i]->life = 1;
+            enemys[i]->speed = rand() % 3;
+            enemys[i]->toy = 1;
+            break;
+        }
+    }
+}
+
+void make_bullet()
+{
+    for (size_t i = 0; i < BULLETSTOTAL; i++)
+    {
+        if (bullets[i]->life < 1)
+        {
+            bullets[i]->x = player->x + player->w / 2 - bullets[i]->w / 2;
+            bullets[i]->y = player->y;
+            bullets[i]->life = 1;
+            bullets[i]->speed = 4;
+            bullets[i]->toy = -1;
+            break;
+        }
+    }
+}
 
 void update()
 {
-    time += 1;
-    if (time % 60 == 0)
+    if (status->over)
     {
-        player->x += player->tox;
-        player->y += player->toy;
+        return;
+    }
+
+    time += 1;
+
+    if (time % 30 == 0)
+    {
+        make_enemy();
+    }
+
+    player->x += player->tox * player->speed;
+    player->y += player->toy * player->speed;
+
+    for (size_t i = 0; i < ENEMYSTOTAL; i++)
+    {
+        if (enemys[i]->life > 0)
+        {
+            enemys[i]->y += enemys[i]->toy * enemys[i]->speed;
+            if (enemys[i]->y > HEIGHT)
+            {
+                enemys[i]->life = 0;
+            }
+        }
+    }
+
+    for (size_t i = 0; i < BULLETSTOTAL; i++)
+    {
+        if (bullets[i]->life > 0)
+        {
+            bullets[i]->y += bullets[i]->toy * bullets[i]->speed;
+            if (bullets[i]->y <= bullets[i]->h * -1)
+            {
+                bullets[i]->life = 0;
+            }
+        }
+    }
+
+    for (size_t i = 0; i < ENEMYSTOTAL; i++)
+    {
+        if (enemys[i]->life > 0)
+        {
+            if (enemys[i]->x < player->x + player->w * 0.75 &&
+                enemys[i]->x + enemys[i]->w * 0.75 > player->x &&
+                enemys[i]->y < player->y + player->h * 0.75 &&
+                enemys[i]->y + enemys[i]->h * 0.75 > player->y)
+            {
+                player->life -= enemys[i]->attack;
+                enemys[i]->life -= player->attack;
+                if (player->life < 1)
+                {
+                    status->over = 1;
+                    break;
+                }
+            }
+
+            for (size_t j = 0; j < BULLETSTOTAL; j++)
+            {
+                if (bullets[j]->life > 0)
+                {
+                    if (enemys[i]->x < bullets[j]->x + bullets[j]->w * 0.75 &&
+                        enemys[i]->x + enemys[i]->w * 0.75 > bullets[j]->x &&
+                        enemys[i]->y < bullets[j]->y + bullets[j]->h * 0.75 &&
+                        enemys[i]->y + enemys[i]->h * 0.75 > bullets[i]->y)
+                    {
+                        bullets[j]->life -= enemys[i]->attack;
+                        enemys[i]->life -= bullets[j]->attack;
+                        player->score += 1;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -43,6 +170,58 @@ void draw()
 
     // SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+
+    for (size_t i = 0; i < sizeof(enemys) / sizeof(enemys[0]); i++)
+    {
+        if (enemys[i]->life > 0)
+        {
+            surface = TTF_RenderText_Solid(font,
+                                           "O", color);
+            texture = SDL_CreateTextureFromSurface(renderer, surface);
+            SDL_Rect dstrect = {enemys[i]->x, enemys[i]->y, enemys[i]->w, enemys[i]->h};
+            SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+        }
+    }
+
+    for (size_t i = 0; i < sizeof(bullets) / sizeof(bullets[0]); i++)
+    {
+        if (bullets[i]->life > 0)
+        {
+            surface = TTF_RenderText_Solid(font,
+                                           "^", color);
+            texture = SDL_CreateTextureFromSurface(renderer, surface);
+            SDL_Rect dstrect = {bullets[i]->x, bullets[i]->y, bullets[i]->w, bullets[i]->h};
+            SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+        }
+    }
+    char score[1000];
+    sprintf(score, "%d", player->score);
+    surface = TTF_RenderText_Solid(font,
+                                   score, color);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+    int texW = 0;
+    int texH = 0;
+    SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
+    SDL_Rect score_dstrect = {10, 10, texW, texH};
+
+    // SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderCopy(renderer, texture, NULL, &score_dstrect);
+
+    if (status->over)
+    {
+        surface = TTF_RenderText_Solid(font,
+                                       "GAME OVER", color);
+        texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+        int texW = 0;
+        int texH = 0;
+        SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
+        SDL_Rect dstrect = {WIDTH / 2 - texW / 2, HEIGHT / 2 - texH / 2, texW, texH};
+        // SDL_RenderCopy(renderer, texture, NULL, NULL);
+        SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+    }
+
     SDL_RenderPresent(renderer);
 }
 
@@ -67,50 +246,55 @@ void ProcessEvents()
 
             if (e.key.keysym.sym == SDLK_a)
             {
-                player->tox = player->speed * -1;
+                player->tox = -1;
             }
 
             if (e.key.keysym.sym == SDLK_d)
             {
-                player->tox = player->speed;
+                player->tox = 1;
             }
 
             if (e.key.keysym.sym == SDLK_w)
             {
-                player->y = player->speed * -1;
+                player->toy = -1;
             }
 
             if (e.key.keysym.sym == SDLK_s)
             {
-                player->y = player->speed;
+                player->toy = 1;
             }
 
             if (e.key.keysym.sym == SDLK_SPACE)
             {
-                if (e.key.keysym.sym == SDLK_a)
-                {
-                    player->tox = 0;
-                }
-
-                if (e.key.keysym.sym == SDLK_d)
-                {
-                    player->tox = 0;
-                }
-
-                if (e.key.keysym.sym == SDLK_w)
-                {
-                    player->y = 0;
-                }
-
-                if (e.key.keysym.sym == SDLK_s)
-                {
-                    player->y = 0;
-                }
             }
         }
 
         if (e.type == SDL_KEYUP)
         {
+            if (e.key.keysym.sym == SDLK_a)
+            {
+                player->tox = 0;
+            }
+
+            if (e.key.keysym.sym == SDLK_d)
+            {
+                player->tox = 0;
+            }
+
+            if (e.key.keysym.sym == SDLK_w)
+            {
+                player->toy = 0;
+            }
+
+            if (e.key.keysym.sym == SDLK_s)
+            {
+                player->toy = 0;
+            }
+
+            if (e.key.keysym.sym == SDLK_SPACE)
+            {
+                make_bullet();
+            }
         }
     }
 }
@@ -118,7 +302,12 @@ void ProcessEvents()
 int main(int argc, char *argv[])
 {
     status = Status_New();
-    player = Sprite_New(10, 10, 20, 20);
+
+    player = Sprite_New(WIDTH / 2 - 20 / 2, HEIGHT - 20 - 10, 20, 20);
+    player->speed = 2;
+
+    init_enemys();
+    init_bullets();
 
     // printf("%d %s",argc,argv[1]);
 
@@ -146,7 +335,7 @@ int main(int argc, char *argv[])
     // creates a window
     window = SDL_CreateWindow("demo",
                               SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED, 200, 200,
+                              SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT,
                               SDL_WINDOW_SHOWN);
 
     if (window == NULL)
@@ -171,25 +360,7 @@ int main(int argc, char *argv[])
     // TTF_Font *font = TTF_OpenFont("./fonts/white-rabbit.TTF", 25);
     font = TTF_OpenFont("./fonts/white-rabbit.TTF", 25);
 
-    ///
-    /// Section 2: SDL image loader
-    ///
-
-    ///
-    /// Section 4: SDL ttf and rendering text
-    ///
-
-    ///
-    /// Section 3: Game Loop and Basic Controls
-    ///
-
-    // We add a delay in order to see that our window
-    // has successfully popped up.
     // SDL_Delay(3000);
-
-    ///
-    /// Section 5: Freeing resources
-    ///
 
     // looping for event with input
     while (!status->quit)
@@ -197,15 +368,15 @@ int main(int argc, char *argv[])
         ProcessEvents();
         update();
         draw();
+        SDL_Delay(1000 / 60);
     }
-    // destroy our window
 
+    /// Freeing resources
     TTF_CloseFont(font);
     TTF_Quit();
     SDL_DestroyTexture(texture);
     SDL_FreeSurface(surface);
     SDL_DestroyRenderer(renderer);
-
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
