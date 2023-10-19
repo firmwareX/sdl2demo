@@ -6,6 +6,7 @@
 #include <time.h>
 #include "status.h"
 #include "sprite.h"
+#include "process_events.h"
 
 #define BULLETSTOTAL 100
 #define ENEMYSTOTAL 10
@@ -105,6 +106,27 @@ void update()
 
     player->x += player->tox * player->speed;
     player->y += player->toy * player->speed;
+
+    if (player->x < 0)
+    {
+        player->x = 0;
+        player->tox = 0;
+    }
+    if (player->x + player->w > WIDTH)
+    {
+        player->x = WIDTH - player->w;
+        player->tox = 0;
+    }
+    if (player->y < 0)
+    {
+        player->y = 0;
+        player->toy = 0;
+    }
+    if (player->y + player->h > HEIGHT)
+    {
+        player->y = HEIGHT - player->h;
+        player->toy = 0;
+    }
 
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
@@ -256,107 +278,6 @@ void draw()
     SDL_RenderPresent(renderer);
 }
 
-void ProcessEvents()
-{
-    SDL_Event e;
-
-    while (SDL_PollEvent(&e))
-    {
-        if (e.type == SDL_QUIT)
-        {
-            status->quit = 1;
-            return;
-        }
-
-        if (e.type == SDL_KEYDOWN)
-        {
-            if (e.key.keysym.sym == SDLK_ESCAPE)
-            {
-                status->quit = 1;
-            }
-
-            if (status->over)
-            {
-                return;
-            }
-
-            if (e.key.keysym.sym == SDLK_a)
-            {
-                player->tox = -1;
-            }
-
-            if (e.key.keysym.sym == SDLK_d)
-            {
-                player->tox = 1;
-            }
-
-            if (e.key.keysym.sym == SDLK_w)
-            {
-                player->toy = -1;
-            }
-
-            if (e.key.keysym.sym == SDLK_s)
-            {
-                player->toy = 1;
-            }
-
-            if (e.key.keysym.sym == SDLK_SPACE)
-            {
-            }
-        }
-
-        if (e.type == SDL_KEYUP)
-        {
-            if (e.key.keysym.sym == SDLK_r)
-            {
-                if (status->over)
-                {
-                    init_player();
-                    init_enemys();
-                    init_bullets();
-                    status->over = 0;
-                    status->time = 0;
-                }
-            }
-
-            if (status->over)
-            {
-                return;
-            }
-
-            if (e.key.keysym.sym == SDLK_p)
-            {
-                status->paused = !status->paused;
-            }
-
-            if (e.key.keysym.sym == SDLK_a)
-            {
-                player->tox = 0;
-            }
-
-            if (e.key.keysym.sym == SDLK_d)
-            {
-                player->tox = 0;
-            }
-
-            if (e.key.keysym.sym == SDLK_w)
-            {
-                player->toy = 0;
-            }
-
-            if (e.key.keysym.sym == SDLK_s)
-            {
-                player->toy = 0;
-            }
-
-            if (e.key.keysym.sym == SDLK_SPACE)
-            {
-                make_bullet();
-            }
-        }
-    }
-}
-
 int main(int argc, char *argv[])
 {
     status = Status_New();
@@ -422,7 +343,7 @@ int main(int argc, char *argv[])
     // looping for event with input
     while (!status->quit)
     {
-        ProcessEvents();
+        ProcessEvents(status, player, init_player, init_enemys, init_bullets, make_bullet);
         update();
         draw();
         SDL_Delay(1000 / 60);
