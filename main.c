@@ -9,11 +9,12 @@
 
 #define BULLETSTOTAL 100
 #define ENEMYSTOTAL 10
-#define WIDTH 150
-#define HEIGHT 150
+#define WIDTH 640
+#define HEIGHT 480
 
 SDL_Window *window;
 TTF_Font *font;
+TTF_Font *bigfont;
 SDL_Renderer *renderer;
 SDL_Surface *surface;
 SDL_Texture *texture;
@@ -35,7 +36,7 @@ void init_enemys()
     // for (size_t i = 0; i < sizeof(enemys) / sizeof(enemys[0]); i++)
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        enemys[i] = Sprite_New(0, -20, 20, 20);
+        enemys[i] = Sprite_New(0, -20, 20, 20, "A");
         enemys[i]->life = 0;
     }
 }
@@ -44,7 +45,7 @@ void init_bullets()
 {
     for (size_t i = 0; i < BULLETSTOTAL; i++)
     {
-        bullets[i] = Sprite_New(10, 10, 10, 5);
+        bullets[i] = Sprite_New(10, 10, 10, 5, "^");
         bullets[i]->life = 0;
     }
 }
@@ -140,11 +141,14 @@ void update()
                 enemys[i]->y + enemys[i]->h * 0.75 > player->y)
             {
                 player->life -= enemys[i]->attack;
-                enemys[i]->life -= player->attack;
                 if (player->life < 1)
                 {
                     status->over = 1;
                     break;
+                }
+                else
+                {
+                    enemys[i]->life -= player->attack;
                 }
             }
 
@@ -189,7 +193,7 @@ void draw()
         if (enemys[i]->life > 0)
         {
             surface = TTF_RenderText_Solid(font,
-                                           "O", color);
+                                           enemys[i]->data, color);
             texture = SDL_CreateTextureFromSurface(renderer, surface);
             SDL_Rect dstrect = {enemys[i]->x, enemys[i]->y, enemys[i]->w, enemys[i]->h};
             SDL_RenderCopy(renderer, texture, NULL, &dstrect);
@@ -201,14 +205,14 @@ void draw()
         if (bullets[i]->life > 0)
         {
             surface = TTF_RenderText_Solid(font,
-                                           "^", color);
+                                           bullets[i]->data, color);
             texture = SDL_CreateTextureFromSurface(renderer, surface);
             SDL_Rect dstrect = {bullets[i]->x, bullets[i]->y, bullets[i]->w, bullets[i]->h};
             SDL_RenderCopy(renderer, texture, NULL, &dstrect);
         }
     }
     char score[1000];
-    sprintf(score, "%d", player->score);
+    sprintf(score, "SCORE:%d", player->score);
     surface = TTF_RenderText_Solid(font,
                                    score, color);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -223,7 +227,7 @@ void draw()
 
     if (status->over)
     {
-        surface = TTF_RenderText_Solid(font,
+        surface = TTF_RenderText_Solid(bigfont,
                                        "GAME OVER", color);
         texture = SDL_CreateTextureFromSurface(renderer, surface);
 
@@ -237,7 +241,7 @@ void draw()
 
     if (status->paused)
     {
-        surface = TTF_RenderText_Solid(font,
+        surface = TTF_RenderText_Solid(bigfont,
                                        "PAUSED", color);
         texture = SDL_CreateTextureFromSurface(renderer, surface);
 
@@ -411,6 +415,7 @@ int main(int argc, char *argv[])
 
     // TTF_Font *font = TTF_OpenFont("./fonts/white-rabbit.TTF", 25);
     font = TTF_OpenFont("./fonts/white-rabbit.TTF", 25);
+    bigfont = TTF_OpenFont("./fonts/white-rabbit.TTF", 50);
 
     // SDL_Delay(3000);
 
@@ -425,6 +430,7 @@ int main(int argc, char *argv[])
 
     /// Freeing resources
     TTF_CloseFont(font);
+    TTF_CloseFont(bigfont);
     TTF_Quit();
     SDL_DestroyTexture(texture);
     SDL_FreeSurface(surface);
