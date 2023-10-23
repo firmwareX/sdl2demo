@@ -7,8 +7,10 @@
 #include "status.h"
 #include "sprite.h"
 #include "process_events.h"
+#include "update.h"
+#include "collision_detection.h"
 
-#define BULLETSTOTAL 100
+#define BULLETSTOTAL 10
 #define ENEMYSTOTAL 10
 #define WIDTH 640
 #define HEIGHT 480
@@ -85,113 +87,113 @@ void make_bullet()
     }
 }
 
-void update()
-{
-    if (status->over)
-    {
-        return;
-    }
+// void updatebak()
+// {
+//     if (status->over)
+//     {
+//         return;
+//     }
 
-    if (status->paused)
-    {
-        return;
-    }
+//     if (status->paused)
+//     {
+//         return;
+//     }
 
-    status->time += 1;
+//     status->time += 1;
 
-    if (status->time % 30 == 0)
-    {
-        make_enemy();
-    }
+//     if (status->time % 30 == 0)
+//     {
+//         make_enemy();
+//     }
 
-    player->x += player->tox * player->speed;
-    player->y += player->toy * player->speed;
+//     player->x += player->tox * player->speed;
+//     player->y += player->toy * player->speed;
 
-    if (player->x < 0)
-    {
-        player->x = 0;
-        player->tox = 0;
-    }
-    if (player->x + player->w > WIDTH)
-    {
-        player->x = WIDTH - player->w;
-        player->tox = 0;
-    }
-    if (player->y < 0)
-    {
-        player->y = 0;
-        player->toy = 0;
-    }
-    if (player->y + player->h > HEIGHT)
-    {
-        player->y = HEIGHT - player->h;
-        player->toy = 0;
-    }
+//     if (player->x < 0)
+//     {
+//         player->x = 0;
+//         player->tox = 0;
+//     }
+//     if (player->x + player->w > WIDTH)
+//     {
+//         player->x = WIDTH - player->w;
+//         player->tox = 0;
+//     }
+//     if (player->y < 0)
+//     {
+//         player->y = 0;
+//         player->toy = 0;
+//     }
+//     if (player->y + player->h > HEIGHT)
+//     {
+//         player->y = HEIGHT - player->h;
+//         player->toy = 0;
+//     }
 
-    for (size_t i = 0; i < ENEMYSTOTAL; i++)
-    {
-        if (enemys[i]->life > 0)
-        {
-            enemys[i]->y += enemys[i]->toy * enemys[i]->speed;
+//     for (size_t i = 0; i < ENEMYSTOTAL; i++)
+//     {
+//         if (enemys[i]->life > 0)
+//         {
+//             enemys[i]->y += enemys[i]->toy * enemys[i]->speed;
 
-            if (enemys[i]->y > HEIGHT)
-            {
-                enemys[i]->life -= 1;
-            }
-        }
-    }
+//             if (enemys[i]->y > HEIGHT)
+//             {
+//                 enemys[i]->life -= 1;
+//             }
+//         }
+//     }
 
-    for (size_t i = 0; i < BULLETSTOTAL; i++)
-    {
-        if (bullets[i]->life > 0)
-        {
-            bullets[i]->y += bullets[i]->toy * bullets[i]->speed;
-            if (bullets[i]->y <= bullets[i]->h * -1)
-            {
-                bullets[i]->life -= 1;
-            }
-        }
-    }
+//     for (size_t i = 0; i < BULLETSTOTAL; i++)
+//     {
+//         if (bullets[i]->life > 0)
+//         {
+//             bullets[i]->y += bullets[i]->toy * bullets[i]->speed;
+//             if (bullets[i]->y <= bullets[i]->h * -1)
+//             {
+//                 bullets[i]->life -= 1;
+//             }
+//         }
+//     }
 
-    for (size_t i = 0; i < ENEMYSTOTAL; i++)
-    {
-        if (enemys[i]->life > 0)
-        {
-            if (enemys[i]->x < player->x + player->w * 0.75 &&
-                enemys[i]->x + enemys[i]->w * 0.75 > player->x &&
-                enemys[i]->y < player->y + player->h * 0.75 &&
-                enemys[i]->y + enemys[i]->h * 0.75 > player->y)
-            {
-                player->life -= enemys[i]->attack;
-                if (player->life < 1)
-                {
-                    status->over = 1;
-                    break;
-                }
-                else
-                {
-                    enemys[i]->life -= player->attack;
-                }
-            }
+//     for (size_t i = 0; i < ENEMYSTOTAL; i++)
+//     {
+//         if (enemys[i]->life > 0)
+//         {
+//             if (enemys[i]->x < player->x + player->w * 0.75 &&
+//                 enemys[i]->x + enemys[i]->w * 0.75 > player->x &&
+//                 enemys[i]->y < player->y + player->h * 0.75 &&
+//                 enemys[i]->y + enemys[i]->h * 0.75 > player->y)
+//             {
+//                 player->life -= enemys[i]->attack;
+//                 if (player->life < 1)
+//                 {
+//                     status->over = 1;
+//                     break;
+//                 }
+//                 else
+//                 {
+//                     enemys[i]->life -= player->attack;
+//                 }
+//             }
 
-            for (size_t j = 0; j < BULLETSTOTAL; j++)
-            {
-                if (bullets[j]->life > 0)
-                {
-                    if (enemys[i]->x < bullets[j]->x + bullets[j]->w * 0.75 &&
-                        enemys[i]->x + enemys[i]->w * 0.75 > bullets[j]->x &&
-                        enemys[i]->y < bullets[j]->y + bullets[j]->h * 0.75 &&
-                        enemys[i]->y + enemys[i]->h * 0.75 > bullets[i]->y)
-                    {
-                        bullets[j]->life -= enemys[i]->attack;
-                        enemys[i]->life -= bullets[j]->attack;
-                        player->score += 1;
-                    }
-                }
-            }
-        }
-    }
-}
+//             for (size_t j = 0; j < BULLETSTOTAL; j++)
+//             {
+//                 if (bullets[j]->life > 0)
+//                 {
+//                     if (enemys[i]->x < bullets[j]->x + bullets[j]->w * 0.75 &&
+//                         enemys[i]->x + enemys[i]->w * 0.75 > bullets[j]->x &&
+//                         enemys[i]->y < bullets[j]->y + bullets[j]->h * 0.75 &&
+//                         enemys[i]->y + enemys[i]->h * 0.75 > bullets[i]->y)
+//                     {
+//                         bullets[j]->life -= enemys[i]->attack;
+//                         enemys[i]->life -= bullets[j]->attack;
+//                         player->score += 1;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
 
 void draw()
 {
@@ -344,8 +346,74 @@ int main(int argc, char *argv[])
     while (!status->quit)
     {
         ProcessEvents(status, player, init_player, init_enemys, init_bullets, make_bullet);
-        update();
+
         draw();
+
+        if (status->over)
+        {
+            continue;
+        }
+
+        if (status->paused)
+        {
+            continue;
+        }
+
+        status->time += 1;
+
+        if (status->time % 30 == 0)
+        {
+            make_enemy();
+        }
+
+        update_player(player, WIDTH, HEIGHT);
+
+        for (size_t i = 0; i < BULLETSTOTAL; i++)
+        {
+            if (bullets[i]->life > 0)
+            {
+                update_bullet(bullets[i]);
+            }
+        }
+
+        for (size_t i = 0; i < ENEMYSTOTAL; i++)
+        {
+            if (enemys[i]->life > 0)
+            {
+                update_enemy(enemys[i], HEIGHT);
+            }
+        }
+
+        for (size_t i = 0; i < ENEMYSTOTAL; i++)
+        {
+            if (enemys[i]->life > 0)
+            {
+                if (collision_detection(enemys[i], player))
+                {
+                    status->over = 1;
+                }
+            }
+        }
+
+        for (size_t i = 0; i < ENEMYSTOTAL; i++)
+        {
+            if (enemys[i]->life > 0)
+            {
+                for (size_t j = 0; j < BULLETSTOTAL; j++)
+                {
+                    if (bullets[j]->life > 0)
+                    {
+                        if (collision_detection(enemys[i], bullets[j]))
+                        {
+                            enemys[i]->life -= bullets[j]->attack;
+                            bullets[j]->life -= enemys[i]->attack;
+                            player->score += enemys[i]->value;
+                        }
+                    }
+                }
+            }
+        }
+
         SDL_Delay(1000 / 60);
     }
 
