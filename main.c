@@ -8,6 +8,7 @@
 #include "sprite.h"
 #include "process_events.h"
 #include "update.h"
+#include "draw.h"
 #include "collision_detection.h"
 
 #define BULLETSTOTAL 10
@@ -15,18 +16,13 @@
 #define WIDTH 640
 #define HEIGHT 480
 
-SDL_Window *window;
-TTF_Font *font;
-TTF_Font *bigfont;
-SDL_Renderer *renderer;
-SDL_Surface *surface;
-SDL_Texture *texture;
-
 Status *status;
 Sprite *player;
 
 Sprite *bullets[BULLETSTOTAL];
 Sprite *enemys[ENEMYSTOTAL];
+
+SDL_Window *window;
 
 void init_player()
 {
@@ -140,88 +136,33 @@ void update()
 
 void draw()
 {
-    SDL_RenderClear(renderer);
-    SDL_Color color = {255, 255, 255};
-    // 🛸
-    surface = TTF_RenderText_Solid(font,
-                                   player->data, color);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-    // int texW = 0;
-    // int texH = 0;
-    // SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
-    SDL_Rect dstrect = {player->x, player->y, player->w, player->h};
-
-    // SDL_RenderCopy(renderer, texture, NULL, NULL);
-    SDL_RenderCopy(renderer, texture, NULL, &dstrect);
-
+    draw_clear();
+    draw_sprite(player);
     for (size_t i = 0; i < sizeof(enemys) / sizeof(enemys[0]); i++)
     {
         if (enemys[i]->life > 0)
         {
-            surface = TTF_RenderText_Solid(font,
-                                           enemys[i]->data, color);
-            texture = SDL_CreateTextureFromSurface(renderer, surface);
-            SDL_Rect dstrect = {enemys[i]->x, enemys[i]->y, enemys[i]->w, enemys[i]->h};
-            SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+            draw_sprite(enemys[i]);
         }
     }
-
     for (size_t i = 0; i < sizeof(bullets) / sizeof(bullets[0]); i++)
     {
         if (bullets[i]->life > 0)
         {
-            surface = TTF_RenderText_Solid(font,
-                                           bullets[i]->data, color);
-            texture = SDL_CreateTextureFromSurface(renderer, surface);
-            SDL_Rect dstrect = {bullets[i]->x, bullets[i]->y, bullets[i]->w, bullets[i]->h};
-            SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+            draw_sprite(bullets[i]);
         }
     }
-    char score[1000];
-    sprintf(score, "SCORE:%d", player->score);
-    surface = TTF_RenderText_Solid(font,
-                                   score, color);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-    int texW = 0;
-    int texH = 0;
-    SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
-    SDL_Rect score_dstrect = {10, 10, texW, texH};
-
-    // SDL_RenderCopy(renderer, texture, NULL, NULL);
-    SDL_RenderCopy(renderer, texture, NULL, &score_dstrect);
-
+    draw_score(player->score);
     if (status->over)
     {
-        SDL_Color color = {255, 0, 0};
-        surface = TTF_RenderText_Solid(bigfont,
-                                       "GAME OVER", color);
-        texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-        int texW = 0;
-        int texH = 0;
-        SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
-        SDL_Rect dstrect = {WIDTH / 2 - texW / 2, HEIGHT / 2 - texH / 2, texW, texH};
-        // SDL_RenderCopy(renderer, texture, NULL, NULL);
-        SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+        draw_gameover(WIDTH, HEIGHT);
     }
 
     if (status->paused)
     {
-        surface = TTF_RenderText_Solid(bigfont,
-                                       "PAUSED", color);
-        texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-        int texW = 0;
-        int texH = 0;
-        SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
-        SDL_Rect dstrect = {WIDTH / 2 - texW / 2, HEIGHT / 2 - texH / 2, texW, texH};
-        // SDL_RenderCopy(renderer, texture, NULL, NULL);
-        SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+        draw_paused(WIDTH, HEIGHT);
     }
-
-    SDL_RenderPresent(renderer);
+    draw_show();
 }
 
 int main(int argc, char *argv[])
@@ -272,19 +213,7 @@ int main(int argc, char *argv[])
         SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
     }
 
-    // triggers the program that controls
-    // your graphics hardware and sets flags
-
-    // creates a renderer to render our images
-    Uint32 render_flags = SDL_RENDERER_ACCELERATED;
-    renderer = SDL_CreateRenderer(window, -1, render_flags);
-    // SDL_Renderer * renderer = SDL_CreateRenderer(window, -1, 0);
-
-    // TTF_Font *font = TTF_OpenFont("./fonts/white-rabbit.TTF", 25);
-    font = TTF_OpenFont("./fonts/white-rabbit.TTF", 25);
-    bigfont = TTF_OpenFont("./fonts/white-rabbit.TTF", 50);
-
-    // SDL_Delay(3000);
+    draw_init(window);
 
     // looping for event with input
     while (!status->quit)
@@ -316,12 +245,7 @@ int main(int argc, char *argv[])
     }
 
     /// Freeing resources
-    TTF_CloseFont(font);
-    TTF_CloseFont(bigfont);
-    TTF_Quit();
-    SDL_DestroyTexture(texture);
-    SDL_FreeSurface(surface);
-    SDL_DestroyRenderer(renderer);
+    draw_destroy();
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
