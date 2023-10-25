@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Sprite
+typedef struct
 {
     int x;
     int y;

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Status
+typedef struct
 {
     int time;
     int over;
