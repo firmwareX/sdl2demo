@@ -10,8 +10,8 @@ SDL_Texture *texture;
 
 void draw_init(SDL_Window *window)
 {
-    font = TTF_OpenFont("./fonts/white-rabbit.TTF", 20);
-    bigfont = TTF_OpenFont("./fonts/white-rabbit.TTF", 30);
+    font = TTF_OpenFont("./resources/white-rabbit.TTF", 20);
+    bigfont = TTF_OpenFont("./resources/white-rabbit.TTF", 30);
     Uint32 render_flags = SDL_RENDERER_ACCELERATED;
     renderer = SDL_CreateRenderer(window, -1, render_flags);
 }
