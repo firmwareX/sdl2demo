@@ -23,7 +23,7 @@ void draw_clear()
 
 void draw_paused(int WIDTH, int HEIGHT)
 {
-    SDL_Color color = {255, 0, 0};
+    SDL_Color color = {255, 255, 255};
     surface = TTF_RenderText_Solid(bigfont,
                                    "PAUSED", color);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -66,17 +66,17 @@ void draw_score(int _score)
     SDL_RenderCopy(renderer, texture, NULL, &score_dstrect);
 };
 
-void draw_sprite(Sprite *s)
+void draw_sprite(Sprite s)
 {
     SDL_Color color = {255, 255, 255};
     // 🛸
     surface = TTF_RenderText_Solid(font,
-                                   s->data, color);
+                                   s.data, color);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     // int texW = 0;
     // int texH = 0;
     // SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
-    SDL_Rect dstrect = {s->x, s->y, s->w, s->h};
+    SDL_Rect dstrect = {s.x, s.y, s.w, s.h};
     // SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderCopy(renderer, texture, NULL, &dstrect);
 };

@@ -16,27 +16,43 @@
 #define WIDTH 640
 #define HEIGHT 480
 
-Status *status;
-Sprite *player;
+Status status;
+Sprite player;
 
-Sprite *bullets[BULLETSTOTAL];
-Sprite *enemys[ENEMYSTOTAL];
+Sprite bullets[BULLETSTOTAL];
+Sprite enemys[ENEMYSTOTAL];
 
 SDL_Window *window;
 
 void init_player()
 {
-    player = Sprite_New(WIDTH / 2 - 20 / 2, HEIGHT - 20 - 10, 20, 20, "X");
-    player->speed = 2;
+    player.attack = 1;
+    player.life = 1;
+    player.x = WIDTH / 2 - 20 / 2;
+    player.y = HEIGHT - 20 - 10;
+    player.tox = 0;
+    player.toy = 0;
+    player.w = 20;
+    player.h = 30;
+    player.score = 0;
+    player.data = "x";
+    player.speed = 2;
 }
 
 void init_enemys()
 {
-    // for (size_t i = 0; i < sizeof(enemys) / sizeof(enemys[0]); i++)
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        enemys[i] = Sprite_New(0, -20, 20, 20, "A");
-        enemys[i]->life = 0;
+        enemys[i].x = 0;
+        enemys[i].y = -20;
+        enemys[i].w = 20;
+        enemys[i].h = 20;
+        enemys[i].data = "A";
+        enemys[i].value = 1;
+        enemys[i].attack = 1;
+        enemys[i].life = 0;
+        enemys[i].speed = 1;
+        enemys[i].toy = 1;
     }
 }
 
@@ -44,8 +60,15 @@ void init_bullets()
 {
     for (size_t i = 0; i < BULLETSTOTAL; i++)
     {
-        bullets[i] = Sprite_New(10, 10, 10, 5, "^");
-        bullets[i]->life = 0;
+        bullets[i].w = 15;
+        bullets[i].h = 10;
+        bullets[i].data = "^";
+        bullets[i].value = 1;
+        bullets[i].attack = 1;
+        bullets[i].life = 0;
+        bullets[i].speed = 4;
+        bullets[i].toy = -1;
+        bullets[i].attack = 1;
     }
 }
 
@@ -53,15 +76,13 @@ void make_enemy()
 {
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        if (enemys[i]->life < 1)
+        if (enemys[i].life < 1)
         {
             srand(time(NULL));
-            int x = rand() % (WIDTH - enemys[i]->w);
-            enemys[i]->x = x;
-            enemys[i]->y = -1 * enemys[i]->h;
-            enemys[i]->life = 1;
-            enemys[i]->speed = 1;
-            enemys[i]->toy = 1;
+            int x = rand() % (WIDTH - enemys[i].w);
+            enemys[i].x = x;
+            enemys[i].y = -1 * enemys[i].h;
+            enemys[i].life = 1;
             break;
         }
     }
@@ -71,13 +92,11 @@ void make_bullet()
 {
     for (size_t i = 0; i < BULLETSTOTAL; i++)
     {
-        if (bullets[i]->life < 1)
+        if (bullets[i].life < 1)
         {
-            bullets[i]->x = player->x + player->w / 2 - bullets[i]->w / 2;
-            bullets[i]->y = player->y;
-            bullets[i]->life = 1;
-            bullets[i]->speed = 4;
-            bullets[i]->toy = -1;
+            bullets[i].x = player.x + player.w / 2 - bullets[i].w / 2;
+            bullets[i].y = player.y;
+            bullets[i].life = 1;
             break;
         }
     }
@@ -85,48 +104,48 @@ void make_bullet()
 
 void update()
 {
-    update_player(player, WIDTH, HEIGHT);
+    update_player(&player, WIDTH, HEIGHT);
 
     for (size_t i = 0; i < BULLETSTOTAL; i++)
     {
-        if (bullets[i]->life > 0)
+        if (bullets[i].life > 0)
         {
-            update_bullet(bullets[i]);
+            update_bullet(&bullets[i]);
         }
     }
 
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        if (enemys[i]->life > 0)
+        if (enemys[i].life > 0)
         {
-            update_enemy(enemys[i], HEIGHT);
+            update_enemy(&enemys[i], HEIGHT);
         }
     }
 
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        if (enemys[i]->life > 0)
+        if (enemys[i].life > 0)
         {
             if (collision_detection(enemys[i], player))
             {
-                status->over = 1;
+                status.over = 1;
             }
         }
     }
 
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        if (enemys[i]->life > 0)
+        if (enemys[i].life > 0)
         {
             for (size_t j = 0; j < BULLETSTOTAL; j++)
             {
-                if (bullets[j]->life > 0)
+                if (bullets[j].life > 0)
                 {
                     if (collision_detection(enemys[i], bullets[j]))
                     {
-                        enemys[i]->life -= bullets[j]->attack;
-                        bullets[j]->life -= enemys[i]->attack;
-                        player->score += enemys[i]->value;
+                        enemys[i].life -= bullets[j].attack;
+                        bullets[j].life -= enemys[i].attack;
+                        player.score += enemys[i].value;
                     }
                 }
             }
@@ -138,27 +157,27 @@ void draw()
 {
     draw_clear();
     draw_sprite(player);
-    for (size_t i = 0; i < sizeof(enemys) / sizeof(enemys[0]); i++)
+    for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        if (enemys[i]->life > 0)
+        if (enemys[i].life > 0)
         {
             draw_sprite(enemys[i]);
         }
     }
-    for (size_t i = 0; i < sizeof(bullets) / sizeof(bullets[0]); i++)
+    for (size_t i = 0; i < BULLETSTOTAL; i++)
     {
-        if (bullets[i]->life > 0)
+        if (bullets[i].life > 0)
         {
             draw_sprite(bullets[i]);
         }
     }
-    draw_score(player->score);
-    if (status->over)
+    draw_score(player.score);
+    if (status.over)
     {
         draw_gameover(WIDTH, HEIGHT);
     }
 
-    if (status->paused)
+    if (status.paused)
     {
         draw_paused(WIDTH, HEIGHT);
     }
@@ -167,7 +186,7 @@ void draw()
 
 int main(int argc, char *argv[])
 {
-    status = Status_New();
+    status = init_status();
 
     init_player();
     init_enemys();
@@ -179,7 +198,7 @@ int main(int argc, char *argv[])
     {
         if (strcmp(argv[1], "full") == 0)
         {
-            status->full_screen = 1;
+            status.full_screen = 1;
         }
     }
 
@@ -208,7 +227,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if (status->full_screen)
+    if (status.full_screen)
     {
         SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
     }
@@ -216,27 +235,48 @@ int main(int argc, char *argv[])
     draw_init(window);
 
     // looping for event with input
-    while (!status->quit)
+    while (!status.quit)
     {
-        ProcessEvents(status, player, init_player, init_enemys, init_bullets, make_bullet);
+        int is_restart = 0;
+        int is_make_bullet = 0;
+
+        ProcessEvents(&status, &player, &is_restart, &is_make_bullet);
 
         draw();
 
-        if (status->over)
+        if (is_restart == 1)
+        {
+            init_player();
+            init_enemys();
+            init_bullets();
+
+            status.over = 0;
+            status.time = 0;
+
+            is_restart = 0;
+        }
+
+        if (status.over)
         {
             continue;
         }
 
-        if (status->paused)
+        if (status.paused)
         {
             continue;
         }
 
-        status->time += 1;
+        status.time += 1;
 
-        if (status->time % 30 == 0)
+        if (status.time % 30 == 0)
         {
             make_enemy();
+        }
+
+        if (is_make_bullet == 1)
+        {
+            make_bullet();
+            is_make_bullet = 0;
         }
 
         update();

@@ -2,7 +2,7 @@
 #include "status.h"
 #include "sprite.h"
 
-void ProcessEvents(Status *status, Sprite *player, void *init_player(), void *init_enemys(), void *init_bullets(), void *make_bullet())
+void ProcessEvents(Status *status, Sprite *player, int *is_restart, int *is_make_bullet)
 {
     SDL_Event e;
 
@@ -57,11 +57,8 @@ void ProcessEvents(Status *status, Sprite *player, void *init_player(), void *in
             {
                 if (status->over)
                 {
-                    init_player();
-                    init_enemys();
-                    init_bullets();
-                    status->over = 0;
-                    status->time = 0;
+                    *is_restart = 1;
+                    return;
                 }
             }
 
@@ -97,7 +94,7 @@ void ProcessEvents(Status *status, Sprite *player, void *init_player(), void *in
 
             if (e.key.keysym.sym == SDLK_SPACE)
             {
-                make_bullet();
+                *is_make_bullet = 1;
             }
         }
     }

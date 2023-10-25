@@ -12,4 +12,4 @@ typedef struct Status
     int full_screen;
 } Status;
 
-Status *Status_New();
+Status init_status();
