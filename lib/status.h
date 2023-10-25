@@ -14,4 +14,4 @@ typedef struct Status
     int init;
 } Status;
 
-Status *Status_New();
+Status Status_New();

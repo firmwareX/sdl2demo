@@ -16,19 +16,19 @@
 #define WIDTH 200
 #define HEIGHT 200
 
-Status *status;
-Sprite *player;
+Status status;
+Sprite player;
 
-Sprite *bullets[BULLETSTOTAL];
-Sprite *enemys[ENEMYSTOTAL];
+Sprite bullets[BULLETSTOTAL];
+Sprite enemys[ENEMYSTOTAL];
 
 SDL_Window *window;
 
 void init_player()
 {
     player = Sprite_New(WIDTH / 2 - 20 / 2, HEIGHT - 20 - 10, 20, 20, "X", WIDTH, HEIGHT);
-    player->speed = 2;
-    player->can_out_screen = 0;
+    player.speed = 2;
+    player.can_out_screen = 0;
 }
 
 void init_enemys()
@@ -37,7 +37,7 @@ void init_enemys()
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
         enemys[i] = Sprite_New(0, -20, 20, 20, "A", WIDTH, HEIGHT);
-        enemys[i]->life = 0;
+        enemys[i].life = 0;
     }
 }
 
@@ -46,7 +46,7 @@ void init_bullets()
     for (size_t i = 0; i < BULLETSTOTAL; i++)
     {
         bullets[i] = Sprite_New(10, 10, 10, 5, "^", WIDTH, HEIGHT);
-        bullets[i]->life = 0;
+        bullets[i].life = 0;
     }
 }
 
@@ -55,23 +55,23 @@ void init()
     init_player();
     init_bullets();
     init_enemys();
-    status->over = 0;
-    status->time = 0;
+    status.over = 0;
+    status.time = 0;
 }
 
 void make_enemy()
 {
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        if (enemys[i]->life < 1)
+        if (enemys[i].life < 1)
         {
             srand(time(NULL));
-            int x = rand() % (WIDTH - enemys[i]->w);
-            enemys[i]->x = x;
-            enemys[i]->y = -1 * enemys[i]->h;
-            enemys[i]->life = 1;
-            enemys[i]->speed = 1;
-            enemys[i]->toy = 1;
+            int x = rand() % (WIDTH - enemys[i].w);
+            enemys[i].x = x;
+            enemys[i].y = -1 * enemys[i].h;
+            enemys[i].life = 1;
+            enemys[i].speed = 1;
+            enemys[i].toy = 1;
             break;
         }
     }
@@ -81,13 +81,13 @@ void make_bullet()
 {
     for (size_t i = 0; i < BULLETSTOTAL; i++)
     {
-        if (bullets[i]->life < 1)
+        if (bullets[i].life < 1)
         {
-            bullets[i]->x = player->x + player->w / 2 - bullets[i]->w / 2;
-            bullets[i]->y = player->y;
-            bullets[i]->life = 1;
-            bullets[i]->speed = 4;
-            bullets[i]->toy = -1;
+            bullets[i].x = player.x + player.w / 2 - bullets[i].w / 2;
+            bullets[i].y = player.y;
+            bullets[i].life = 1;
+            bullets[i].speed = 4;
+            bullets[i].toy = -1;
             break;
         }
     }
@@ -95,48 +95,48 @@ void make_bullet()
 
 void update()
 {
-    update_sprite(player);
+    update_sprite(&player);
 
     for (size_t i = 0; i < BULLETSTOTAL; i++)
     {
-        if (bullets[i]->life > 0)
+        if (bullets[i].life > 0)
         {
-            update_sprite(bullets[i]);
+            update_sprite(&bullets[i]);
         }
     }
 
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        if (enemys[i]->life > 0)
+        if (enemys[i].life > 0)
         {
-            update_sprite(enemys[i], HEIGHT);
+            update_sprite(&enemys[i], HEIGHT);
         }
     }
 
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        if (enemys[i]->life > 0)
+        if (enemys[i].life > 0)
         {
             if (collision_detection(enemys[i], player))
             {
-                status->over = 1;
+                status.over = 1;
             }
         }
     }
 
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        if (enemys[i]->life > 0)
+        if (enemys[i].life > 0)
         {
             for (size_t j = 0; j < BULLETSTOTAL; j++)
             {
-                if (bullets[j]->life > 0)
+                if (bullets[j].life > 0)
                 {
                     if (collision_detection(enemys[i], bullets[j]))
                     {
-                        enemys[i]->life -= bullets[j]->attack;
-                        bullets[j]->life -= enemys[i]->attack;
-                        player->score += enemys[i]->value;
+                        enemys[i].life -= bullets[j].attack;
+                        bullets[j].life -= enemys[i].attack;
+                        player.score += enemys[i].value;
                     }
                 }
             }
@@ -150,25 +150,25 @@ void draw()
     draw_sprite(player);
     for (size_t i = 0; i < sizeof(enemys) / sizeof(enemys[0]); i++)
     {
-        if (enemys[i]->life > 0)
+        if (enemys[i].life > 0)
         {
             draw_sprite(enemys[i]);
         }
     }
     for (size_t i = 0; i < sizeof(bullets) / sizeof(bullets[0]); i++)
     {
-        if (bullets[i]->life > 0)
+        if (bullets[i].life > 0)
         {
             draw_sprite(bullets[i]);
         }
     }
-    draw_score(player->score);
-    if (status->over)
+    draw_score(player.score);
+    if (status.over)
     {
         draw_gameover(WIDTH, HEIGHT);
     }
 
-    if (status->paused)
+    if (status.paused)
     {
         draw_paused(WIDTH, HEIGHT);
     }
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
     {
         if (strcmp(argv[1], "full") == 0)
         {
-            status->full_screen = 1;
+            status.full_screen = 1;
         }
     }
 
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if (status->full_screen)
+    if (status.full_screen)
     {
         SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
     }
@@ -224,42 +224,42 @@ int main(int argc, char *argv[])
     draw_init(window);
 
     // looping for event with input
-    while (!status->quit)
+    while (!status.quit)
     {
-        ProcessEvents(status, player);
+        ProcessEvents(&status, &player);
 
         draw();
 
-        if (status->init == 1)
+        if (status.init == 1)
         {
             init();
 
-            status->init = 0;
+            status.init = 0;
 
             continue;
         }
 
-        if (status->over == 1)
+        if (status.over == 1)
         {
             continue;
         }
 
-        if (status->paused)
+        if (status.paused)
         {
             continue;
         }
 
-        status->time += 1;
+        status.time += 1;
 
-        if (status->time % 30 == 0)
+        if (status.time % 30 == 0)
         {
             make_enemy();
         }
 
-        if (status->make_bullet == 1)
+        if (status.make_bullet == 1)
         {
             make_bullet();
-            status->make_bullet = 0;
+            status.make_bullet = 0;
         }
 
         update();

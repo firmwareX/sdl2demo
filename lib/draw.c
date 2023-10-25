@@ -66,17 +66,17 @@ void draw_score(int _score)
     SDL_RenderCopy(renderer, texture, NULL, &score_dstrect);
 };
 
-void draw_sprite(Sprite *sprite)
+void draw_sprite(Sprite sprite)
 {
     SDL_Color color = {255, 255, 255};
     // 🛸
     surface = TTF_RenderText_Solid(font,
-                                   sprite->data, color);
+                                   sprite.data, color);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     // int texW = 0;
     // int texH = 0;
     // SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
-    SDL_Rect dstrect = {sprite->x, sprite->y, sprite->w, sprite->h};
+    SDL_Rect dstrect = {sprite.x, sprite.y, sprite.w, sprite.h};
     // SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderCopy(renderer, texture, NULL, &dstrect);
 };

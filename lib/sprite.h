@@ -23,4 +23,4 @@ typedef struct Sprite
     int max_h;
 } Sprite;
 
-Sprite *Sprite_New();
+Sprite Sprite_New();
