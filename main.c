@@ -4,17 +4,17 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <time.h>
-#include "status.h"
-#include "sprite.h"
-#include "process_events.h"
-#include "update.h"
-#include "draw.h"
-#include "collision_detection.h"
+#include "./lib/status.h"
+#include "./lib/sprite.h"
+#include "./lib/process_events.h"
+#include "./lib/update.h"
+#include "./lib/draw.h"
+#include "./lib/collision_detection.h"
 
 #define BULLETSTOTAL 10
 #define ENEMYSTOTAL 10
-#define WIDTH 640
-#define HEIGHT 480
+#define WIDTH 200
+#define HEIGHT 200
 
 Status *status;
 Sprite *player;
@@ -26,8 +26,9 @@ SDL_Window *window;
 
 void init_player()
 {
-    player = Sprite_New(WIDTH / 2 - 20 / 2, HEIGHT - 20 - 10, 20, 20, "X");
+    player = Sprite_New(WIDTH / 2 - 20 / 2, HEIGHT - 20 - 10, 20, 20, "X", WIDTH, HEIGHT);
     player->speed = 2;
+    player->can_out_screen = 0;
 }
 
 void init_enemys()
@@ -35,7 +36,7 @@ void init_enemys()
     // for (size_t i = 0; i < sizeof(enemys) / sizeof(enemys[0]); i++)
     for (size_t i = 0; i < ENEMYSTOTAL; i++)
     {
-        enemys[i] = Sprite_New(0, -20, 20, 20, "A");
+        enemys[i] = Sprite_New(0, -20, 20, 20, "A", WIDTH, HEIGHT);
         enemys[i]->life = 0;
     }
 }
@@ -44,9 +45,18 @@ void init_bullets()
 {
     for (size_t i = 0; i < BULLETSTOTAL; i++)
     {
-        bullets[i] = Sprite_New(10, 10, 10, 5, "^");
+        bullets[i] = Sprite_New(10, 10, 10, 5, "^", WIDTH, HEIGHT);
         bullets[i]->life = 0;
     }
+}
+
+void init()
+{
+    init_player();
+    init_bullets();
+    init_enemys();
+    status->over = 0;
+    status->time = 0;
 }
 
 void make_enemy()
@@ -85,13 +95,13 @@ void make_bullet()
 
 void update()
 {
-    update_player(player, WIDTH, HEIGHT);
+    update_sprite(player);
 
     for (size_t i = 0; i < BULLETSTOTAL; i++)
     {
         if (bullets[i]->life > 0)
         {
-            update_bullet(bullets[i]);
+            update_sprite(bullets[i]);
         }
     }
 
@@ -99,7 +109,7 @@ void update()
     {
         if (enemys[i]->life > 0)
         {
-            update_enemy(enemys[i], HEIGHT);
+            update_sprite(enemys[i], HEIGHT);
         }
     }
 
@@ -169,9 +179,7 @@ int main(int argc, char *argv[])
 {
     status = Status_New();
 
-    init_player();
-    init_enemys();
-    init_bullets();
+    init();
 
     // printf("%d %s",argc,argv[1]);
 
@@ -218,11 +226,20 @@ int main(int argc, char *argv[])
     // looping for event with input
     while (!status->quit)
     {
-        ProcessEvents(status, player, init_player, init_enemys, init_bullets, make_bullet);
+        ProcessEvents(status, player);
 
         draw();
 
-        if (status->over)
+        if (status->init == 1)
+        {
+            init();
+
+            status->init = 0;
+
+            continue;
+        }
+
+        if (status->over == 1)
         {
             continue;
         }
@@ -237,6 +254,12 @@ int main(int argc, char *argv[])
         if (status->time % 30 == 0)
         {
             make_enemy();
+        }
+
+        if (status->make_bullet == 1)
+        {
+            make_bullet();
+            status->make_bullet = 0;
         }
 
         update();

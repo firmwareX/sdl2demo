@@ -10,6 +10,8 @@ typedef struct Status
     int paused;
     int quit;
     int full_screen;
+    int make_bullet;
+    int init;
 } Status;
 
 Status *Status_New();

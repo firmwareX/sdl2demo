@@ -17,7 +17,10 @@ typedef struct Sprite
     int tox;
     int toy;
     int speed;
+    int can_out_screen; // 是否可以超出屏幕
     char *data;
+    int max_w;
+    int max_h;
 } Sprite;
 
 Sprite *Sprite_New();

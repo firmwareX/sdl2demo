@@ -10,8 +10,8 @@ SDL_Texture *texture;
 
 void draw_init(SDL_Window *window)
 {
-    font = TTF_OpenFont("./fonts/white-rabbit.TTF", 25);
-    bigfont = TTF_OpenFont("./fonts/white-rabbit.TTF", 50);
+    font = TTF_OpenFont("./fonts/white-rabbit.TTF", 20);
+    bigfont = TTF_OpenFont("./fonts/white-rabbit.TTF", 30);
     Uint32 render_flags = SDL_RENDERER_ACCELERATED;
     renderer = SDL_CreateRenderer(window, -1, render_flags);
 }
@@ -23,7 +23,7 @@ void draw_clear()
 
 void draw_paused(int WIDTH, int HEIGHT)
 {
-    SDL_Color color = {255, 0, 0};
+    SDL_Color color = {255, 255, 255};
     surface = TTF_RenderText_Solid(bigfont,
                                    "PAUSED", color);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -66,17 +66,17 @@ void draw_score(int _score)
     SDL_RenderCopy(renderer, texture, NULL, &score_dstrect);
 };
 
-void draw_sprite(Sprite *s)
+void draw_sprite(Sprite *sprite)
 {
     SDL_Color color = {255, 255, 255};
     // 🛸
     surface = TTF_RenderText_Solid(font,
-                                   s->data, color);
+                                   sprite->data, color);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     // int texW = 0;
     // int texH = 0;
     // SDL_QueryTexture(texture, NULL, NULL, &texW, &texH);
-    SDL_Rect dstrect = {s->x, s->y, s->w, s->h};
+    SDL_Rect dstrect = {sprite->x, sprite->y, sprite->w, sprite->h};
     // SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderCopy(renderer, texture, NULL, &dstrect);
 };
